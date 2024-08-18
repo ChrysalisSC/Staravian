@@ -7,12 +7,12 @@ import base64
 import os
 import json
 
-from common import log, generate_random_number, get_time
+from backend.common.common import log, generate_random_number, get_time
 from datetime import datetime, timezone, timedelta
 import pytz
 from PIL import Image, ImageDraw, ImageFont
 
-from backend.users import *
+from backend.utilities.users import *
 import ast
 
 import requests

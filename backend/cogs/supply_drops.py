@@ -4,8 +4,9 @@ from discord.ui import View, Button
 import sqlite3
 import datetime
 
-from common import log, get_time
-from backend.users import *
+from backend.common.common import log, get_time
+from backend.utilities.users import *
+
 
 DATABASE_PATH = "databases/drop_views.db"
 

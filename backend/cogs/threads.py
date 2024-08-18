@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 from datetime import datetime, timedelta
 
-from common import log
+from backend.common.common import log
 import sqlite3
 import random
 import asyncio

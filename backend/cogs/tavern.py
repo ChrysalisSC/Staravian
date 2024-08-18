@@ -3,17 +3,19 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from common import log
+from backend.common.common import log, get_base_path
 import time
 import datetime
 
-from backend.users import *
-from backend.buffs import *
-from backend.renown import *
+from backend.utilities.users import *
+from backend.utilities.renown import *
+from backend.utilities.buffs import *
+
+
 
 
 def get_data_for_backgrounds():
-    with open("shared_config/profile_data.json", "r") as f:
+    with open("config/shared_config/profile_data.json", "r") as f:
         data = json.load(f)
     f.close()
     return data
@@ -213,7 +215,7 @@ class adminView(discord.ui.View):
     async def add_all_cosmetics(self):
         # Replace this with your actual function logic
         print(f"Adding all cosmetics for {self.member.name}")
-        with open ("shared_config/profile_data.json") as f:
+        with open ("config/shared_config/profile_data.json") as f:
             data = json.load(f)
         f.close()
         backgrounds = data['backgrounds']
@@ -246,7 +248,10 @@ class Tavern(commands.Cog):
     def __init__(self, bot, config):
         self.bot = bot
         self.config = config
-        self.load_views()
+        #self.load_views()
+        central_cog = self.bot.get_cog("Central")
+        if central_cog:
+            central_cog.register_view("tavern_view", self.create_tavern_view)
        
 
     def load_views(self):
@@ -265,11 +270,9 @@ class Tavern(commands.Cog):
         conn.close()
     
     def save_view_state(self, view_identifier):
-        conn = sqlite3.connect('databases/views.db')
-        c = conn.cursor()
-        c.execute('REPLACE INTO views (view_identifier) VALUES (?)', (view_identifier,))
-        conn.commit()
-        conn.close()
+        #get the central cog from the bot then add view to the central db
+        central_cog = self.bot.get_cog("Central")
+
 
     async def get_member_by_id(self, user_id):
         guild = self.bot.get_guild(1226714258117496922)
@@ -299,7 +302,7 @@ class Tavern(commands.Cog):
         user_cog = self.bot.get_cog("Users")
         #embed 2 display user buffs and badges
         embed_2 = discord.Embed(title="BADGES", description="Here you can see the buffs and badges you've collected on your adventures!", color=0xFFFFFF)
-        with open ("shared_config/badges.json") as f:
+        with open ("config/shared_config/badges.json") as f:
             badge_data = json.load(f)
         f.close()
 
@@ -369,12 +372,13 @@ class Tavern(commands.Cog):
                     )
         button.callback = button_callback
         return view
-    
+    """
     @commands.command()
     async def tavern(self, ctx):
         view_identifier = f"Tavern_view"
-        view = self.create_tavern_view(view_identifier)
+        view = self.create_tavern_view(view_identifier) 
         self.save_view_state(view_identifier)
+        
 
         embed = discord.Embed(title="Welcome to the Tavern!", description="Step into the Tavern, make it your own, and let your profile tell the story of your journey!", color=0xFFFFFF)
         embed.add_field(name="Profile", value="The Tavern is your go-to destination for customizing your profile and showcasing your achievements. Here, you can personalize your avatar, update your profile details, and flaunt the buffs and badges you've collected on your adventures.", inline=False)
@@ -385,6 +389,28 @@ class Tavern(commands.Cog):
         embed.set_image(url="attachment://tavern.png")
         channel = self.bot.get_channel(int(self.config["TAVERN_ID"]))
         await channel.send(embed=embed, view=view, file=file)
+        """
+    @commands.command()
+    async def tavern(self, ctx):
+        view_identifier = f"Tavern_view"
+        view = self.create_tavern_view(view_identifier) 
+
+        embed = discord.Embed(title="Welcome to the Tavern!", description="Step into the Tavern, make it your own, and let your profile tell the story of your journey!", color=0xFFFFFF)
+        embed.add_field(name="Profile", value="The Tavern is your go-to destination for customizing your profile and showcasing your achievements. Here, you can personalize your avatar, update your profile details, and flaunt the buffs and badges you've collected on your adventures.", inline=False)
+        embed.add_field(name="Customize Your Profile", value=" Tailor your profile to reflect your unique style. Choose from a variety of styles, backgrounds, and themes to create a look that stands out.", inline=False)
+        embed.add_field(name="Showcase Your Achievements", value="Display your accomplishments with pride. Whether you've conquered a dungeon, completed a quest, or earned a special badge, the Tavern is the perfect place to show off your victories.", inline=False)
+
+        file = discord.File("images/tavern.png", filename="tavern.png")
+        embed.set_image(url="attachment://tavern.png")
+        channel = self.bot.get_channel(int(self.config["TAVERN_ID"]))
+        await channel.send(embed=embed, view=view, file=file)
+
+        # Add the view to the database
+        central_cog = self.bot.get_cog("Central")
+        if central_cog:
+            await central_cog.add_view_to_database(view_identifier,"tavern_view", int(self.config["TAVERN_ID"]), category="Tavern")
+        else:
+            log("[TAVERN]", "Central cog not found. View not added to database.")
    
 
     def create_view_table(self):

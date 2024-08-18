@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from common import log, generate_random_number
+from backend.common.common import log, generate_random_number
 import typing
 import asyncio
 import json
@@ -10,9 +10,10 @@ import sqlite3
 from datetime import datetime, timedelta
 import time
 import pytz
-from backend.users import *
+from backend.utilities.users import *
 
-DATABASE_PATH = 'databases/shop_views.db'
+
+DATABASE_PATH = 'backend/databases/shop_views.db'
 
 class BuyButton(discord.ui.Button):
     def __init__(self, label, item_name, item_id, price, catagory):
@@ -177,7 +178,7 @@ class ShopWelcomeView(discord.ui.View):
 
 def get_shop_name():
     # Load the JSON data from the file
-    json_file = "shared_config/post.json"
+    json_file = "config/shared_config/post.json"
     with open(json_file, 'r') as file:
         data = json.load(file)
     file.close()
@@ -188,7 +189,7 @@ def get_shop_name():
     return current_post_name, description
 
 def update_trading_post():
-    json_file = "shared_config/post.json"
+    json_file = "config/shared_config/post.json"
     # Load the JSON data from the file
     with open(json_file, 'r') as file:
         data = json.load(file)
@@ -278,11 +279,10 @@ class Shop(commands.Cog):
     async def shop_start(self, thread, shop_name, user_id):
         #create_shopembed
        
-        
-        with open("shared_config/backgrounds.json") as f:
+   
+        with open("config/shared_config/backgrounds.json") as f:
             data = json.load(f)
         f.close()
-
 
         await self.welcome_shop(thread, shop_name, data, user_name=self.get_username(user_id), user_id=user_id)
 
@@ -357,6 +357,7 @@ class Shop(commands.Cog):
         """
     async def shop(self):
         #get channel from config
+
         channel_name = self.bot.get_channel(int(self.config["SHOP_ID"]))
 
         view_identifier = f"shop_view"

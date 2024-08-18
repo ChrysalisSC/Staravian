@@ -1,57 +1,21 @@
 import sqlite3
 import json
 import math
-from backend.buffs import *
+from backend.utilities.buffs import *
 import datetime
 
-from common import log, open_config, get_time
+from backend.common.common import log, open_config, get_time
 import time
 import os
 
 
 
-
-async def create_table():
-    if os.path.isfile("databases/user_data.db"):
-        return
-    log("USER", "Creating user data table...")
-    conn = sqlite3.connect("databases/user_data.db")
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS USERINFO (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            credits INTEGER DEFAULT 0,
-            total_xp INTEGER DEFAULT 0,
-            level INTEGER DEFAULT 1,
-            role_name TEXT,
-            team_name TEXT,
-            buffs TEXT DEFAULT '[]',
-            titles TEXT DEFAULT '[]',
-            selected_title TEXT,
-            guild TEXT,
-            daily_lockout INTEGER DEFAULT 0,
-            weekly_lockout INTEGER DEFAULT 0,
-            header_backgrounds TEXT DEFAULT '[]',
-            set_header_background TEXT,
-            profile_backgrounds TEXT DEFAULT '[]',
-            selected_background TEXT,
-            profile_colors TEXT DEFAULT '[]',
-            selected_color TEXT,
-            badges TEXT DEFAULT '[]',
-            selected_badges '[]',
-            timespent INTEGER DEFAULT 0,
-            last_seen INTEGER DEFAULT 0,
-            is_admin INTEGER DEFAULT 0
-        )
-    ''')
-    conn.commit()
-    conn.close()
+user_database_path = "backend/databases/user_data.db"
 
 async def add_user(bot, user_id, username):
     #get current time
     last_seen = get_time()
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute('''
         INSERT OR IGNORE INTO USERINFO (
@@ -71,7 +35,7 @@ async def add_user(bot, user_id, username):
 
 # Get  user information database Fuctions
 def get_user_xp(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -80,7 +44,7 @@ def get_user_xp(user_id):
 
 async def get_user_xp_total_and_level(bot, user_id):
     try:
-        conn = sqlite3.connect("databases/user_data.db")
+        conn = sqlite3.connect(user_database_path)
         c = conn.cursor()
         c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
         data = c.fetchone()
@@ -98,7 +62,7 @@ async def get_user_xp_total_and_level(bot, user_id):
 
 def get_user_credits(user_id):
     try:
-        conn = sqlite3.connect("databases/user_data.db")
+        conn = sqlite3.connect(user_database_path)
         c = conn.cursor()
         c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
         data = c.fetchone()
@@ -108,7 +72,7 @@ def get_user_credits(user_id):
     return data[2]
 
 def get_user_data(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -116,7 +80,7 @@ def get_user_data(user_id):
     return data
 
 def get_user_title(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -125,7 +89,7 @@ def get_user_title(user_id):
 
 # Get xp and credit data
 def update_user_xp_and_level(user_id, new_total_xp, new_level):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     cursor = conn.cursor()
     cursor.execute("UPDATE USERINFO SET total_xp = ?, level = ? WHERE user_id = ?", (new_total_xp, new_level, user_id))
     conn.commit()
@@ -133,21 +97,21 @@ def update_user_xp_and_level(user_id, new_total_xp, new_level):
 
 
 def add_user_credits(user_id, credits):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET credits=credits + ? WHERE user_id=?", (credits, user_id))
     conn.commit()
     conn.close()
 
 def remove_user_credits(user_id, credits):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET credits=credits - ? WHERE user_id=?", (credits, user_id))
     conn.commit()
     conn.close()
 
 def check_and_update_credits(user_id, required_credits):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     
     # Check the current credits of the user
@@ -175,7 +139,7 @@ def check_and_update_credits(user_id, required_credits):
 def add_title_to_user(user_id, title):
     if check_if_user_has_item(user_id, title, "titles"):
         return
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT titles FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -190,7 +154,7 @@ def add_title_to_user(user_id, title):
     return True
 
 def remove_title_from_user(user_id, title):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT titles FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -206,7 +170,7 @@ def remove_title_from_user(user_id, title):
 def add_backgrounds_to_user(user_id, background):
     if check_if_user_has_item(user_id, background, "backgrounds"):
         return
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT profile_backgrounds FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -222,7 +186,7 @@ def add_backgrounds_to_user(user_id, background):
     return True
 
 def remove_background_from_user(user_id, background):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT profile_backgrounds FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -238,7 +202,7 @@ def remove_background_from_user(user_id, background):
 def add_color_to_user(user_id, color):
     if check_if_user_has_item(user_id, color, "colors"):
         return
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT profile_colors FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -254,7 +218,7 @@ def add_color_to_user(user_id, color):
 
 
 def set_background(user_id, background):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET selected_background=? WHERE user_id=?", (background, user_id))
     conn.commit()
@@ -262,21 +226,21 @@ def set_background(user_id, background):
 
 
 def set_header(user_id, background):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET set_header_background=? WHERE user_id=?", (background, user_id))
     conn.commit()
     conn.close()
 
 def set_color(user_id, color):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET selected_color=? WHERE user_id=?", (color, user_id))
     conn.commit()
     conn.close()
 
 def set_title(user_id, title):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET selected_title=? WHERE user_id=?", (title, user_id))
     conn.commit()
@@ -285,7 +249,7 @@ def set_title(user_id, title):
 def add_header_to_user(user_id, background):
     if check_if_user_has_item(user_id, background, "headers"):
         return
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT header_backgrounds FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -301,7 +265,7 @@ def add_header_to_user(user_id, background):
 
 def remove_header_from_user(user_id, background):
   
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT header_backgrounds FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -315,7 +279,7 @@ def remove_header_from_user(user_id, background):
     return True
 
 def check_if_user_has_item(user_id, item_name, category):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -351,7 +315,7 @@ def check_if_user_has_item(user_id, item_name, category):
         return False
   
 def get_name_of_item(item_id, category):
-    with open("shared_config/profile_data.json", "r") as f:
+    with open("config/shared_config/profile_data.json", "r") as f:
         data = json.load(f)
     f.close()
     print(item_id, category)
@@ -427,7 +391,7 @@ async def add_xp(bot, user_id, xp_to_add, buff_type='XP'):
     return 
 
 def update_user_xp_and_level(user_id, new_total_xp, new_level):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     cursor = conn.cursor()
     cursor.execute("UPDATE USERINFO SET total_xp = ?, level = ? WHERE user_id = ?", (new_total_xp, new_level, user_id))
     conn.commit()
@@ -435,14 +399,14 @@ def update_user_xp_and_level(user_id, new_total_xp, new_level):
 
 def add_time_to_user(user_id, time):
     log("USERS", f"Adding {time} seconds to user {user_id}'s time spent.")
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET timespent=timespent + ? WHERE user_id=?", (time, user_id))
     conn.commit()
     conn.close()
 
 def get_user_profile(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT selected_background, set_header_background, selected_title, selected_color FROM USERINFO WHERE user_id=?", (user_id,))
     profile_settings = c.fetchone()
@@ -452,13 +416,13 @@ def get_user_profile(user_id):
     return profile_settings[0], profile_settings[1], profile_settings[2], profile_settings[3]
 
 def get_user_profile_names(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT selected_background, set_header_background, selected_title, selected_color FROM USERINFO WHERE user_id=?", (user_id,))
     profile_settings = c.fetchone()
     conn.close()
     
-    with open ("shared_config/profile_data.json", "r") as f:
+    with open ("config/shared_config/profile_data.json", "r") as f:
         data = json.load(f)
     f.close()
     
@@ -473,7 +437,7 @@ def get_user_profile_names(user_id):
 
 def get_all_profile_data(user_id):
     # gets all the profile data for the user 
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT * FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -481,9 +445,9 @@ def get_all_profile_data(user_id):
 
 
 def get_user_collections(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
-    c.execute("SELECT pbackendrofile_backgrounds, header_backgrounds, titles, profile_colors FROM USERINFO WHERE user_id=?", (user_id,))
+    c.execute("SELECT profile_backgrounds, header_backgrounds, titles, profile_colors FROM USERINFO WHERE user_id=?", (user_id,))
     collections = c.fetchone()
     conn.close()
     if collections is None:
@@ -500,7 +464,7 @@ def get_user_collections(user_id):
     return backgrounds, headers, titles, colors
 
 def get_time_spent(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT timespent FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -509,7 +473,7 @@ def get_time_spent(user_id):
 
 def get_last_seen(user_id):
     try:
-        conn = sqlite3.connect("databases/user_data.db")
+        conn = sqlite3.connect(user_database_path)
         c = conn.cursor()
         c.execute("SELECT last_seen FROM USERINFO WHERE user_id=?", (user_id,))
         data = c.fetchone()
@@ -519,7 +483,7 @@ def get_last_seen(user_id):
     return data[0]
 
 def update_last_seen(user_id, time):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET last_seen=? WHERE user_id=?", (time, user_id))
     conn.commit()
@@ -528,7 +492,7 @@ def update_last_seen(user_id, time):
 def update_ranks():
     # for each member in the database, update their rank in relation to each other.
     #store the data in "shared_config/ranks.json"
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT user_id, total_xp FROM USERINFO")
     data = c.fetchall()
@@ -538,7 +502,7 @@ def update_ranks():
     ranks = {}
     for i, user in enumerate(data):
         ranks[user[0]] = i + 1
-    with open("shared_config/ranks.json", "w") as f:
+    with open("config/shared_config/ranks.json", "w") as f:
         json.dump(ranks, f)
     f.close()
     return 
@@ -551,11 +515,12 @@ async def add_role_to_user(bot, user_id, role_id):
         user = await bot.fetch_user(user_id)
         if not user:
             log("ERROR", f"User with ID {user_id} not found.")
-          
             return
-        
-        guild = bot.get_guild(config["GUILD_ID"])  # Replace guild_id with your guild ID
+        print(config)
+        guild = bot.get_guild(int(config["GUILD_ID"])) # Replace guild_id with your guild ID
+        print(guild)
         role = guild.get_role(role_id)
+        print(role)
         if not role:
             log("ERROR", f"Role with ID {role_id} not found.")
             return
@@ -570,7 +535,7 @@ async def add_role_to_user(bot, user_id, role_id):
         log("ERROR", f"Error adding role to user: {e}")
 
 def get_all_user_badges(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -580,7 +545,7 @@ def get_all_user_badges(user_id):
     return []
 
 def add_badge_to_user(user_id, badge):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -596,7 +561,7 @@ def add_badge_to_user(user_id, badge):
     return True
 
 def remove_badge_from_user(user_id, badge):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -609,7 +574,7 @@ def remove_badge_from_user(user_id, badge):
     return True
 
 def get_user_selected_badges(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT selected_badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -619,7 +584,7 @@ def get_user_selected_badges(user_id):
     return []
 
 def add_selected_badge_to_user(user_id, badge):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT selected_badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -634,7 +599,7 @@ def add_selected_badge_to_user(user_id, badge):
     return True
 
 def remove_selected_badge_from_user(user_id, badge):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT selected_badges FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -648,14 +613,14 @@ def remove_selected_badge_from_user(user_id, badge):
     return True
 
 def update_selected_badges(user_id, selected_badges):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET selected_badges=? WHERE user_id=?", (json.dumps(selected_badges), user_id))
     conn.commit()
     conn.close()
 
 def is_admin(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("SELECT is_admin FROM USERINFO WHERE user_id=?", (user_id,))
     data = c.fetchone()
@@ -665,21 +630,21 @@ def is_admin(user_id):
     return False
 
 def set_admin(user_id):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET is_admin=1 WHERE user_id=?", (user_id,))
     conn.commit()
     conn.close()
 
 def set_level(user_id, level):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET level=? WHERE user_id=?", (level, user_id))
     conn.commit()
     conn.close()
 
 def set_xp(user_id, xp):
-    conn = sqlite3.connect("databases/user_data.db")
+    conn = sqlite3.connect(user_database_path)
     c = conn.cursor()
     c.execute("UPDATE USERINFO SET total_xp=? WHERE user_id=?", (xp, user_id))
     conn.commit()

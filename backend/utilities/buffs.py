@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from common import log, get_time
+from backend.common.common import log, get_time
 
 def add_buff_to_user(user_id, buff):
     conn = sqlite3.connect("databases/user_data.db")

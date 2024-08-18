@@ -1,16 +1,16 @@
 import sqlite3
 import json
 import math
-from backend.buffs import *
-from common import log, get_time
+from backend.utilities.buffs import *
+from backend.common.common import log, get_time
 import discord
 import time
 import datetime
 import pytz
 
 
-from backend.users import *
-from backend.buffs import *
+from backend.utilities.users import *
+from backend.utilities.users import *
 # when A user does a specific action such as being in voice chat add a renown to them. When they hit a certain amount of renown they get a reward
 
 #levels 1-10 100 xp need each level . 11--15 300 xp, 16-20 500 xp, 21-25 700 xp, 26-30 1000 xp, 31-35 1500 xp, 36-40 2000 xp, 41-45 2500 xp, 46-50 3000 xp

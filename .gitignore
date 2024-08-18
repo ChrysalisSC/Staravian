@@ -31,6 +31,7 @@ MANIFEST
 config/*
 logs.log
 .env
+backend/databases/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
